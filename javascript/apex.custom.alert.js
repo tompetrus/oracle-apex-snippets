@@ -4,10 +4,14 @@ apex.custom.alert = apex.custom.alert ? apex.custom.alert : {};
 (function($, parent, undefined){
 
   /**
+  * When no message is given, captures success message from dialog and shows it to the user
   * @param pOptions {Object}
   * @param pOptions.dialogId {String}
   * @param pOptions.message {String}
   * @param pOptions.da {Object} equals apex dynamic action context
+  * @param pOptions.delay {Number} after how many milliseconds the successmessage starts to disappear
+  * @param pOptions.fadeOut {Number} how many milliseconds it takes to fadeOut the successmessage
+  * @param pOptions.callbackFunction {Function} a function which executes after the successmessage is hidden
   * @since 5.0
   * @example
   * when called from dynamic action:
@@ -19,6 +23,9 @@ apex.custom.alert = apex.custom.alert ? apex.custom.alert : {};
         dialogId : 'customSuccessMessage'
       , message  : null
       , da       : null
+      , delay    : 2000
+      , fadeOut  : 1000
+      , callbackFunction : function() {}
     };
 
     var lOptions = $.extend({}, lDefaults, pOptions);
@@ -66,14 +73,63 @@ apex.custom.alert = apex.custom.alert ? apex.custom.alert : {};
     //Display Success Message
     $('#t_Body_content').after(successHTML);
 
+    autoHideMessages({ messageContainer : '#' + lOptions.dialogId
+                     , delay            : lOptions.delay
+                     , fadeOut          : lOptions.fadeOut
+                     , callbackFunction : lOptions.callbackFunction
+                     } );
+  }
+
+  function showErrorMessage(pOptions) {
+    //Set options
+    var lDefaults = {
+        dialogId : 'customErrorMessage'
+      , message  : null
+      , delay    : 2000
+      , fadeOut  : 1000
+      , callbackFunction : function() {}
+    };
+
+    var lOptions = $.extend({}, lDefaults, pOptions);
+
+    alert(lOptions.message);
+  }
+
+  /**
+  * Auto hide all messages after a few seconds
+  * @param pOptions {Object}
+  * @param pOptions.messageContainer {String}
+  * @param pOptions.delay {Number} after how many milliseconds the successmessage starts to disappear
+  * @param pOptions.fadeOut {Number} how many milliseconds it takes to fadeOut the successmessage
+  * @param pOptions.callbackFunction {Function} a function which executes after the successmessage is hidden
+  * @since 5.0
+  * @example
+  * apex.custom.alert.autoHideMessages();
+  */
+  function autoHideMessages(pOptions) {
+    //Set options
+    var lDefaults = {
+        messageContainer : '.t-Body-alert'
+      , delay            : 2000
+      , fadeOut          : 1000
+      , callbackFunction : function() {}
+    };
+
+    var lOptions = $.extend({}, lDefaults, pOptions);
+
     //Fading alert instead of container, opacity problem with fading container
-    $('.t-Alert').delay(2000).fadeOut(1000, function() {
-      $('#' + lOptions.dialogId).remove();
+    $('.t-Alert.t-Alert--success').delay(lOptions.delay).fadeOut(lOptions.fadeOut, function() {
+      $(lOptions.messageContainer).remove();
+
+      //Execute callback function
+      lOptions.callbackFunction();
     });
   }
 
   var interf = {
-    showSuccessMessage: showSuccessMessage
+      showSuccessMessage: showSuccessMessage
+    , showErrorMessage: showErrorMessage
+    , autoHideMessages: autoHideMessages
   };
 
   $.extend(parent, interf);
